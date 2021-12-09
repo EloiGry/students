@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const Form = () => {
-    const [name, setName] = useState(null)
-    const [age, setAge] = useState(null)
+    const [name, setName] = useState("")
+    const [age, setAge] = useState(0)
+    const [error, setError] = useState(false)
+    let navigate = useNavigate()
+    
 
     const handleChangeName = e => {
         setName(e.target.value)
@@ -12,24 +16,39 @@ const Form = () => {
         setAge(e.target.value)
     }
 
+
+
     const handleSubmit = e => {
         e.preventDefault()
-    
-        const student = {
-          name: name,
-          age: Number(age)
+        console.log(typeof age);
+        if (name !== "" && Number(age) !== 0 ) {
+            
+            const student = {
+                name: name,
+                age: Number(age)
+            }
+        
+            fetch('http://localhost:5000/students', {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(student)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data.status === 'success') {
+                    navigate('/')
+                    setError(false)
+                } 
+            })
+        } else {
+                setError(true)
+            
         }
-    
-        fetch('http://localhost:5000/students', {
-          method: "post",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(student)
-        })
-          .then(response => response.json())
-          .then(data => console.log(data))
-      }
+          
+    }
     
 
     return (
@@ -43,6 +62,8 @@ const Form = () => {
                     <input onChange={handleChangeAge} type="number" className="form-control my-3" placeholder="Age" />
                 </div>
                 <button type="submit" className="btn btn-primary">Submit</button>
+                {error ? <p> Erreur !! Veuillez remplir tous les champs du formulaire </p> : "" }
+                
             </form>
         </>
     );
